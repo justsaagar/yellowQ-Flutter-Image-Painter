@@ -576,6 +576,29 @@ class ImagePainterState extends State<ImagePainter> {
               ),
             ),
           ),
+          Wrap(
+            children: paintModes(textDelegate)
+                .map(
+                  (item) => SelectionItems(
+                    data: item,
+                    isSelected: _controller.mode == item.mode,
+                    selectedColor: widget.optionSelectedColor,
+                    unselectedColor: widget.optionUnselectedColor,
+                    onTap: () {
+                      if (widget.onPaintModeChanged != null) {
+                        widget.onPaintModeChanged!(item.mode);
+                      }
+                      _controller.setMode(item.mode);
+
+                      Navigator.of(context).pop();
+                      if (item.mode == PaintMode.text) {
+                        _openTextDialog();
+                      }
+                    },
+                  ),
+                )
+                .toList(),
+          ),
           if (!widget.controlsAtTop && widget.showControls) _buildControls(),
           SizedBox(height: MediaQuery.of(context).padding.bottom)
         ],

@@ -86,7 +86,6 @@ List<ModeData> paintModes(TextDelegate textDelegate) => [
           label: textDelegate.text),
     ];
 
-@immutable
 class ModeData {
   const ModeData({
     required this.icon,
