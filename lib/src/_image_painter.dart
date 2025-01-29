@@ -25,6 +25,7 @@ class DrawImage extends CustomPainter {
     ///paints [ui.Image] on the canvas for reference to draw over it.
     paintImage(
       canvas: canvas,
+      fit: BoxFit.cover,
       image: _controller.image!,
       filterQuality: FilterQuality.high,
       rect: Rect.fromPoints(

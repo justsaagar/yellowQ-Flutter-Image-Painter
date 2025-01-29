@@ -61,6 +61,7 @@ class TextDialog extends StatelessWidget {
           Align(
             alignment: Alignment.bottomRight,
             child: TextButton(
+              onPressed: onFinished,
               child: Text(
                 textDelegate.done,
                 style: const TextStyle(
@@ -68,7 +69,6 @@ class TextDialog extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              onPressed: onFinished,
             ),
           ),
         ],

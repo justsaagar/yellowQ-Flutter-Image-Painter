@@ -33,6 +33,8 @@ class ImagePainter extends StatefulWidget {
     this.brushIcon,
     this.clearAllIcon,
     this.colorIcon,
+    this.borderColor,
+    this.selectedBackColor,
     this.undoIcon,
     this.isSignature = false,
     this.controlsAtTop = true,
@@ -120,6 +122,8 @@ class ImagePainter extends StatefulWidget {
     Widget? undoIcon,
     Widget? clearAllIcon,
     Widget? colorIcon,
+    Color? borderColor,
+    Color? selectedBackColor,
     ValueChanged<PaintMode>? onPaintModeChanged,
     ValueChanged<Color>? onColorChanged,
     ValueChanged<double>? onStrokeWidthChanged,
@@ -145,6 +149,8 @@ class ImagePainter extends StatefulWidget {
       brushIcon: brushIcon,
       undoIcon: undoIcon,
       colorIcon: colorIcon,
+      borderColor: borderColor,
+      selectedBackColor: selectedBackColor,
       clearAllIcon: clearAllIcon,
       onPaintModeChanged: onPaintModeChanged,
       onColorChanged: onColorChanged,
@@ -175,6 +181,8 @@ class ImagePainter extends StatefulWidget {
     Widget? undoIcon,
     Widget? clearAllIcon,
     Widget? colorIcon,
+    Color? borderColor,
+    Color? selectedBackColor,
     ValueChanged<PaintMode>? onPaintModeChanged,
     ValueChanged<Color>? onColorChanged,
     ValueChanged<double>? onStrokeWidthChanged,
@@ -367,6 +375,9 @@ class ImagePainter extends StatefulWidget {
   ///Widget of Color Icon in control bar.
   final Widget? colorIcon;
 
+  ///Border color of canvas image.
+  final Color? borderColor;
+
   ///Widget for Undo last action on control bar.
   final Widget? undoIcon;
 
@@ -390,6 +401,8 @@ class ImagePainter extends StatefulWidget {
   final bool showControls;
 
   final Color? controlsBackgroundColor;
+
+  final Color? selectedBackColor;
 
   final Color? optionSelectedColor;
 
@@ -456,7 +469,7 @@ class ImagePainterState extends State<ImagePainter> {
         _controller.setImage(_image!);
         _setStrokeMultiplier();
       } else {
-        throw ("${widget.networkUrl} couldn't be resolved.");
+        throw "${widget.networkUrl} couldn't be resolved.";
       }
     } else if (widget.assetPath != null) {
       final img = await rootBundle.load(widget.assetPath!);
@@ -465,7 +478,7 @@ class ImagePainterState extends State<ImagePainter> {
         _controller.setImage(_image!);
         _setStrokeMultiplier();
       } else {
-        throw ("${widget.assetPath} couldn't be resolved.");
+        throw "${widget.assetPath} couldn't be resolved.";
       }
     } else if (widget.file != null) {
       final img = await widget.file!.readAsBytes();
@@ -474,7 +487,7 @@ class ImagePainterState extends State<ImagePainter> {
         _controller.setImage(_image!);
         _setStrokeMultiplier();
       } else {
-        throw ("Image couldn't be resolved from provided file.");
+        throw "Image couldn't be resolved from provided file.";
       }
     } else if (widget.byteArray != null) {
       _image = await _convertImage(widget.byteArray!);
@@ -482,7 +495,7 @@ class ImagePainterState extends State<ImagePainter> {
         _controller.setImage(_image!);
         _setStrokeMultiplier();
       } else {
-        throw ("Image couldn't be resolved from provided byteArray.");
+        throw "Image couldn't be resolved from provided byteArray.";
       }
     } else {
       _isLoaded.value = true;
@@ -491,7 +504,7 @@ class ImagePainterState extends State<ImagePainter> {
 
   ///Dynamically sets stroke multiplier on the basis of widget size.
   ///Implemented to avoid thin stroke on high res images.
-  _setStrokeMultiplier() {
+  void _setStrokeMultiplier() {
     if ((_image!.height + _image!.width) > 1000) {
       _strokeMultiplier = (_image!.height + _image!.width) ~/ 1000;
     }
@@ -546,60 +559,61 @@ class ImagePainterState extends State<ImagePainter> {
       width: widget.width ?? double.maxFinite,
       child: Column(
         children: [
-          if (widget.controlsAtTop && widget.showControls) _buildControls(),
           Expanded(
-            child: FittedBox(
-              alignment: FractionalOffset.center,
-              child: ClipRect(
-                child: AnimatedBuilder(
-                  animation: _controller,
-                  builder: (context, child) {
-                    return InteractiveViewer(
-                      transformationController: _transformationController,
-                      maxScale: 2.4,
-                      minScale: 1,
-                      panEnabled: _controller.mode == PaintMode.none,
-                      scaleEnabled: widget.isScalable!,
-                      onInteractionUpdate: _scaleUpdateGesture,
-                      onInteractionEnd: _scaleEndGesture,
-                      child: CustomPaint(
-                        size: imageSize,
-                        willChange: true,
-                        isComplex: true,
-                        painter: DrawImage(
-                          controller: _controller,
-                        ),
+            child: Container(
+              margin: const EdgeInsets.symmetric(vertical: 16),
+              decoration: BoxDecoration(border: Border.all(color: widget.borderColor ?? Colors.transparent, width: 2)),
+              child: AnimatedBuilder(
+                animation: _controller,
+                builder: (context, child) {
+                  return InteractiveViewer(
+                    transformationController: _transformationController,
+                    maxScale: 2.4,
+                    minScale: 1,
+                    panEnabled: _controller.mode == PaintMode.none,
+                    scaleEnabled: widget.isScalable!,
+                    onInteractionUpdate: _scaleUpdateGesture,
+                    onInteractionEnd: _scaleEndGesture,
+                    child: CustomPaint(
+                      size: imageSize,
+                      willChange: true,
+                      isComplex: true,
+                      painter: DrawImage(
+                        controller: _controller,
                       ),
-                    );
-                  },
-                ),
+                    ),
+                  );
+                },
               ),
             ),
           ),
-          Wrap(
-            children: paintModes(textDelegate)
-                .map(
-                  (item) => SelectionItems(
-                    data: item,
-                    isSelected: _controller.mode == item.mode,
-                    selectedColor: widget.optionSelectedColor,
-                    unselectedColor: widget.optionUnselectedColor,
-                    onTap: () {
-                      if (widget.onPaintModeChanged != null) {
-                        widget.onPaintModeChanged!(item.mode);
-                      }
-                      _controller.setMode(item.mode);
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: paintModes(textDelegate)
+                  .map(
+                    (item) => SelectionItems(
+                      data: item,
+                      isSelected: _controller.mode == item.mode,
+                      selectedBackColor: widget.selectedBackColor,
+                      selectedColor: widget.optionSelectedColor,
+                      unselectedColor: widget.optionUnselectedColor,
+                      onTap: () {
+                        if (widget.onPaintModeChanged != null) {
+                          widget.onPaintModeChanged!(item.mode);
+                        }
+                        _controller.setMode(item.mode);
 
-                      Navigator.of(context).pop();
-                      if (item.mode == PaintMode.text) {
-                        _openTextDialog();
-                      }
-                    },
-                  ),
-                )
-                .toList(),
+                        if (item.mode == PaintMode.text) {
+                          _openTextDialog();
+                        }
+                        setState(() {});
+                      },
+                    ),
+                  )
+                  .toList(),
+            ),
           ),
-          if (!widget.controlsAtTop && widget.showControls) _buildControls(),
           SizedBox(height: MediaQuery.of(context).padding.bottom)
         ],
       ),
@@ -665,7 +679,7 @@ class ImagePainterState extends State<ImagePainter> {
     );
   }
 
-  _scaleStartGesture(ScaleStartDetails onStart) {
+  void _scaleStartGesture(ScaleStartDetails onStart) {
     final _zoomAdjustedOffset =
         _transformationController.toScene(onStart.localFocalPoint);
     if (!widget.isSignature) {

@@ -192,10 +192,10 @@ class ImagePainterController extends ChangeNotifier {
   Future<Uint8List?> _renderSignature() async {
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder);
-    SignaturePainter painter =
+    final SignaturePainter painter =
         SignaturePainter(controller: this, backgroundColor: Colors.blue);
 
-    Size size = Size(_rect.width, _rect.height);
+    final Size size = Size(_rect.width, _rect.height);
 
     painter.paint(canvas, size);
     final _convertedImage = await recorder
